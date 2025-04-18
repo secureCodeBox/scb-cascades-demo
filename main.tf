@@ -13,157 +13,145 @@ provider "hcloud" {}
 
 # --- Network Configuration ---
 
-resource "hcloud_network" "private_net" {
-  name     = "scb-demo-network"
-  ip_range = "10.42.0.0/16" # Wider range for the network itself
+resource "hcloud_network" "private_network" {
+  name     = "private-network"
+  ip_range = "10.0.0.0/16"
 }
 
 resource "hcloud_network_subnet" "private_subnet" {
-  network_id   = hcloud_network.private_net.id
+  network_id   = hcloud_network.private_network.id
   type         = "cloud"
-  network_zone = "eu-central" # Matches the location fsn1
-  ip_range     = "10.42.0.0/24" # Your desired subnet range
+  network_zone = "eu-central"
+  ip_range     = "10.0.42.0/24"
 }
 
-# --- Custom Network Route for Internet-bound Traffic ---
-resource "hcloud_network_route" "internet_route" {
-  network_id  = hcloud_network.private_net.id
-  destination = "0.0.0.0/0"     # Route for all Internet-bound traffic
-  gateway     = "10.42.0.2"     # NAT gateway's private IP
+resource "hcloud_firewall" "block-incoming-internet" {
+  name = "block-incoming-internet"
+  rule {
+    direction = "in"
+    protocol  = "icmp"
+    source_ips = [
+      "0.0.0.0/0",
+      "::/0"
+    ]
+  }
+
+  rule {
+    direction = "in"
+    protocol  = "tcp"
+    port      = "22"
+    source_ips = [
+      "0.0.0.0/0",
+      "::/0"
+    ]
+  }
 }
-
-# --- NAT Gateway Server ---
-
-resource "hcloud_server" "nat_gateway" {
-  name        = "nat-gateway"
+resource "hcloud_server" "juice_shop" {
+  name        = "juice-shop"
+  image       = "ubuntu-24.04"
   server_type = "cax11"
-  image       = "ubuntu-22.04"
   location    = "fsn1"
-  ssh_keys    = ["jannik-zuhause", "jannik-unterwegs"]
+
+  ssh_keys = [ "jannik-zuhause", "jannik-unterwegs" ]
+
+  firewall_ids = [hcloud_firewall.block-incoming-internet.id]
 
   public_net {
-    ipv4_enabled = true
+    ipv4_enabled = false
     ipv6_enabled = true
   }
 
   network {
-    network_id = hcloud_network.private_net.id
-    ip         = "10.42.0.2" # Assign a predictable private IP
+    network_id = hcloud_network.private_network.id
+    ip         = "10.0.42.2"
   }
 
-  user_data = <<-EOF
-#cloud-config
-package_update: true
-package_upgrade: false
-write_files:
-  - path: /etc/netplan/99-custom-routing.yaml
-    permissions: '0644'
-    content: |
-      network:
-        version: 2
-        ethernets:
-          enp7s0: # Replace with your actual network interface name if needed
-            dhcp4: true
-            dhcp4-overrides:
-              use-routes: false # Ignore routes provided by DHCP
-            routes:
-              # Direct route for local network traffic
-              - to: 10.42.0.0/16
-                via: 0.0.0.0 # Use the local interface directly
-              # Default route for Internet-bound traffic via NAT gateway
-              - to: 0.0.0.0/0
-                via: 10.42.0.2
-EOF
+  user_data = <<-EOT
+    #cloud-config
 
-  # Ensure network is ready before starting server configuration
-  depends_on = [hcloud_network_subnet.private_subnet]
+    package_reboot_if_required: true
+    package_update: true
+    package_upgrade: true
+
+    packages:
+      - curl
+      - podman
+
+    runcmd:
+      - podman pull bkimminich/juice-shop
+      - podman run -d -p 3000:3000 --name juice-shop docker.io/bkimminich/juice-shop:v17.2.0
+  EOT
 }
 
-# --- Private Servers ---
-
-resource "hcloud_server" "private_server" {
-  count       = 3
-  name        = "private-server-${count.index + 1}"
+resource "hcloud_server" "bad_postgres" {
+  name        = "bad-postgres"
+  image       = "ubuntu-24.04"
   server_type = "cax11"
-  image       = "ubuntu-22.04"
   location    = "fsn1"
-  ssh_keys    = ["jannik-zuhause", "jannik-unterwegs"]
 
-  # Disable public IPs
+  ssh_keys = [ "jannik-zuhause", "jannik-unterwegs" ]
+
+  firewall_ids = [hcloud_firewall.block-incoming-internet.id]
+
   public_net {
     ipv4_enabled = false
-    ipv6_enabled = false
+    ipv6_enabled = true
   }
 
-  # Attach to the private network
   network {
-    network_id = hcloud_network.private_net.id
-    # IPs will be assigned automatically from 10.42.0.0/24 range
+    network_id = hcloud_network.private_network.id
+    ip         = "10.0.42.3"
   }
 
-  # Cloud-init script to set default route via NAT gateway
-  user_data = <<-EOF
-#cloud-config
-package_update: true
-package_upgrade: false
-write_files:
-  - path: /etc/netplan/99-custom-routing.yaml
-    permissions: '0644'
-    content: |
-      network:
-        version: 2
-        ethernets:
-          enp7s0: # Replace with your actual network interface name if needed
-            dhcp4: true
-            dhcp4-overrides:
-              use-routes: false # Ignore routes provided by DHCP
-            routes:
-              # Direct route for local network traffic
-              - to: 10.42.0.0/16
-                via: 0.0.0.0 # Use the local interface directly
-              # Default route for Internet-bound traffic via NAT gateway
-              - to: 0.0.0.0/0
-                via: 10.42.0.2
-EOF
+  user_data = <<-EOT
+    #cloud-config
 
-  # Ensure NAT gateway is created first
-  depends_on = [hcloud_server.nat_gateway]
+    package_update: true
+    package_upgrade: true
+    packages:
+      - postgresql
+      - postgresql-contrib
+
+    runcmd:
+      # Change the default PostgreSQL user password
+      - sudo -u postgres psql -c "ALTER USER postgres PASSWORD 'postgres';"
+
+      # Configure PostgreSQL to allow password authentication
+      - sed -i "s/#listen_addresses = 'localhost'/listen_addresses = '*'/g" /etc/postgresql/16/main/postgresql.conf
+      - echo "host    all             all             0.0.0.0/0               md5" >> /etc/postgresql/16/main/pg_hba.conf
+
+      # Restart PostgreSQL to apply changes
+      - systemctl restart postgresql
+
+    final_message: "PostgreSQL has been installed and configured successfully!"
+  EOT
 }
 
-# --- Outputs ---
+resource "hcloud_server" "scb" {
+  name        = "scb"
+  image       = "ubuntu-24.04"
+  server_type = "cax11"
+  location    = "fsn1"
 
-# --- Outputs ---
+  ssh_keys = [ "jannik-zuhause", "jannik-unterwegs" ]
 
-output "nat_gateway_public_ipv4" {
-  description = "Public IPv4 address of the NAT gateway"
-  value       = hcloud_server.nat_gateway.ipv4_address
-}
+  firewall_ids = [hcloud_firewall.block-incoming-internet.id]
 
-output "nat_gateway_public_ipv6" {
-  description = "Public IPv6 address of the NAT gateway"
-  value       = hcloud_server.nat_gateway.ipv6_address
-}
+  public_net {
+    ipv4_enabled = false
+    ipv6_enabled = true
+  }
 
-output "nat_gateway_private_ip" {
-  description = "Private IP address of the NAT gateway"
-  # Convert the set to a list first, then access the first element
-  value       = tolist(hcloud_server.nat_gateway.network)[0].ip
-}
+  network {
+    network_id = hcloud_network.private_network.id
+    ip         = "10.0.42.42"
+  }
 
-output "private_server_private_ips" {
-  description = "Private IP addresses of the private servers"
-  # Apply the same tolist() logic within the for loop
-  value       = [for server in hcloud_server.private_server : tolist(server.network)[0].ip]
-}
-
-output "ssh_command_nat_gateway" {
-  description = "Command to SSH into the NAT gateway"
-  value       = "ssh root@${hcloud_server.nat_gateway.ipv4_address}"
-}
-
-output "ssh_command_private_servers_via_gateway" {
-  description = "Example command to SSH into the first private server via the NAT gateway"
-  # Apply the same tolist() logic here as well
-  value       = "ssh -J root@${hcloud_server.nat_gateway.ipv4_address} root@${tolist(hcloud_server.private_server[0].network)[0].ip}"
-  # Note: Requires SSH Agent Forwarding or key available on the gateway
+  user_data = <<-EOT
+    #cloud-config
+    package_update: true
+    package_upgrade: true
+    packages:
+      - nmap
+  EOT
 }
