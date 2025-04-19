@@ -1,0 +1,28 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: defectdojo
+---
+apiVersion: helm.cattle.io/v1
+kind: HelmChart
+metadata:
+  name: defectdojo
+  namespace: defectdojo
+spec:
+  repo: https://raw.githubusercontent.com/DefectDojo/django-DefectDojo/helm-charts
+  chart: defectdojo
+  targetNamespace: defectdojo
+  valuesContent: |-
+    host: defectdojo
+    alternativeHosts:
+      - "localhost"
+      - "defectdojo-django.defectdojo.svc.cluster.local"
+    django:
+      ingress:
+        enabled: true
+        activateTLS: false
+
+    createSecret: true
+    createRabbitMqSecret: true
+    createRedisSecret: true
+    createPostgresqlSecret: true

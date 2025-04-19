@@ -41,6 +41,9 @@ resource "hcloud_server" "scb" {
       - path: /var/lib/rancher/k3s/server/manifests/sample-deployment.yaml
         content: |
           ${indent(6, file("kubernetes-manifests/sample-deployment.yaml"))}
+      - path: /var/lib/rancher/k3s/server/manifests/defectdojo.yaml
+        content: |
+          ${indent(6, file("kubernetes-manifests/defectdojo.yaml"))}
 
   EOT
 }
