@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: securecodebox-scans
+---
+apiVersion: helm.cattle.io/v1
+kind: HelmChart
+metadata:
+  name: nmap
+  namespace: securecodebox-scans
+spec:
+  chart: oci://ghcr.io/securecodebox/helm/nmap
+  targetNamespace: securecodebox-scans
+---
+apiVersion: helm.cattle.io/v1
+kind: HelmChart
+metadata:
+  name: nuclei
+  namespace: securecodebox-scans
+spec:
+  chart: oci://ghcr.io/securecodebox/helm/nuclei
+  targetNamespace: securecodebox-scans

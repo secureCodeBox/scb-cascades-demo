@@ -1,0 +1,10 @@
+apiVersion: "execution.securecodebox.io/v1"
+kind: Scan
+metadata:
+  name: "nmap-internal-network"
+spec:
+  scanType: "nmap"
+  parameters:
+    # Service Detection enabled
+    - "-sV"
+    - "10.0.42.0/24"

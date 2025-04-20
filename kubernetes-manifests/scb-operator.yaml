@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: securecodebox-system
+---
+apiVersion: helm.cattle.io/v1
+kind: HelmChart
+metadata:
+  name: securecodebox-operator
+  namespace: securecodebox-system
+spec:
+  chart: oci://ghcr.io/securecodebox/helm/operator
+  targetNamespace: securecodebox-system

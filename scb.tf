@@ -44,6 +44,12 @@ resource "hcloud_server" "scb" {
       - path: /var/lib/rancher/k3s/server/manifests/defectdojo.yaml
         content: |
           ${indent(6, file("kubernetes-manifests/defectdojo.yaml"))}
+      - path: /var/lib/rancher/k3s/server/manifests/scb-operator.yaml
+        content: |
+          ${indent(6, file("kubernetes-manifests/scb-operator.yaml"))}
+      - path: /var/lib/rancher/k3s/server/manifests/scb-scan-setup.yaml
+        content: |
+          ${indent(6, file("kubernetes-manifests/scb-scan-setup.yaml"))}
 
   EOT
 }
