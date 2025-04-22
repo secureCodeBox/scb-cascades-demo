@@ -1,3 +1,7 @@
+resource "hcloud_firewall" "block-everything" {
+  name = "block-everything"
+}
+
 resource "hcloud_server" "insecure_ssh" {
   name        = "insecure-ssh"
   image       = "ubuntu-24.04"
@@ -8,6 +12,15 @@ resource "hcloud_server" "insecure_ssh" {
     ipv4_enabled = false
     ipv6_enabled = false // completly isolate this one... don't want this to hang in the internet at all...
   }
+
+  network {
+    network_id = hcloud_network.private_network.id
+    ip         = "10.0.42.5"
+  }
+
+  firewall_ids = [
+    hcloud_firewall.block-everything.id,
+  ]
 
   user_data = <<-EOT
     #cloud-config
