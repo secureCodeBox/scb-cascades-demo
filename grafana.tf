@@ -1,5 +1,5 @@
 resource "hcloud_firewall" "allow-monitoring" {
-  name = "allow-kubernetes-api"
+  name = "allow-monitoring"
 
   rule {
     direction = "in"
