@@ -42,7 +42,7 @@ resource "hcloud_server" "monitoring" {
 
   network {
     network_id = hcloud_network.private_network.id
-    ip         = "10.0.42.3"  # Changed IP address
+    ip         = "10.0.42.6"  # Changed IP address
   }
 
   user_data = <<-EOT
