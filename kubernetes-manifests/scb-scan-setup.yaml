@@ -29,3 +29,54 @@ spec:
     nucleiTemplateCache:
       enabled: false
 ---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: ncrack-lists
+stringData:
+  passwords.txt: |-
+    root
+    password
+    123456
+    admin
+    postgres
+  users.txt: |-
+    root
+    admin
+    postgres
+---
+apiVersion: helm.cattle.io/v1
+kind: HelmChart
+metadata:
+  name: ncrack
+  namespace: securecodebox-scans
+spec:
+  chart: oci://ghcr.io/securecodebox/helm/ncrack
+  targetNamespace: securecodebox-scans
+  valuesContent: |-
+    scanner:
+      extraVolumes:
+        - name: ncrack-lists
+          secret:
+            secretName: ncrack-lists
+      extraVolumeMounts:
+        - name: ncrack-lists
+          mountPath: "/ncrack/"
+---
+apiVersion: helm.cattle.io/v1
+kind: HelmChart
+metadata:
+  name: ssh-audit
+  namespace: securecodebox-scans
+spec:
+  chart: oci://ghcr.io/securecodebox/helm/ssh-audit
+  targetNamespace: securecodebox-scans
+---
+apiVersion: helm.cattle.io/v1
+kind: HelmChart
+metadata:
+  name: sslyze
+  namespace: securecodebox-scans
+spec:
+  chart: oci://ghcr.io/securecodebox/helm/sslyze
+  targetNamespace: securecodebox-scans
