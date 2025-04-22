@@ -20,3 +20,12 @@ metadata:
 spec:
   chart: oci://ghcr.io/securecodebox/helm/nuclei
   targetNamespace: securecodebox-scans
+  valuesContent: |-
+    # using a nuclei image with preloaded templates to avoid downloading them every time
+    scanner:
+      image:
+        repo: docker.io/securecodebox/scanner-nuclei-precooked
+        tag: v3.4.2-2025-04-22
+    nucleiTemplateCache:
+      enabled: false
+---
