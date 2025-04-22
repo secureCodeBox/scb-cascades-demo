@@ -1,12 +1,55 @@
+resource "hcloud_firewall" "allow-https" {
+  name = "allow-https"
+
+  rule {
+    direction = "in"
+    protocol  = "tcp"
+    port      = "80"
+    source_ips = [
+      "0.0.0.0/0",
+      "::/0"
+    ]
+  }
+
+  rule {
+    direction = "in"
+    protocol  = "tcp"
+    port      = "443"
+    source_ips = [
+      "0.0.0.0/0",
+      "::/0"
+    ]
+  }
+}
+
+resource "hcloud_firewall" "allow-kubernetes-api" {
+  name = "allow-kubernetes-api"
+
+  rule {
+    direction = "in"
+    protocol  = "tcp"
+    port      = "6443"
+    source_ips = [
+      "0.0.0.0/0",
+      "::/0"
+    ]
+  }
+}
+
+
 resource "hcloud_server" "scb" {
   name        = "scb"
   image       = "ubuntu-24.04"
   server_type = "cax31"
   location    = "fsn1"
 
-  ssh_keys = [ "jannik-zuhause", "jannik-unterwegs" ]
+  ssh_keys = ["jannik-zuhause", "jannik-unterwegs"]
 
-  firewall_ids = [hcloud_firewall.block-incoming-internet.id]
+  firewall_ids = [
+    hcloud_firewall.block-incoming-internet.id,
+    hcloud_firewall.allow-https.id,
+    hcloud_firewall.allow-kubernetes-api.id,
+  ]
 
   public_net {
     ipv4_enabled = true
@@ -38,9 +81,6 @@ resource "hcloud_server" "scb" {
 
     write_files:
       # Example Kubernetes Deployment YAML for static manifests
-      - path: /var/lib/rancher/k3s/server/manifests/sample-deployment.yaml
-        content: |
-          ${indent(6, file("kubernetes-manifests/sample-deployment.yaml"))}
       - path: /var/lib/rancher/k3s/server/manifests/defectdojo.yaml
         content: |
           ${indent(6, file("kubernetes-manifests/defectdojo.yaml"))}
@@ -50,6 +90,9 @@ resource "hcloud_server" "scb" {
       - path: /var/lib/rancher/k3s/server/manifests/scb-scan-setup.yaml
         content: |
           ${indent(6, file("kubernetes-manifests/scb-scan-setup.yaml"))}
+      - path: /var/lib/rancher/k3s/server/manifests/cert-manager.yaml
+        content: |
+          ${indent(6, file("kubernetes-manifests/cert-manager.yaml"))}
 
   EOT
 }

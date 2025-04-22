@@ -13,14 +13,18 @@ spec:
   chart: defectdojo
   targetNamespace: defectdojo
   valuesContent: |-
-    host: defectdojo
+    host: defectdojo.demo.securecodebox.io
     alternativeHosts:
       - "localhost"
       - "defectdojo-django.defectdojo.svc.cluster.local"
+      - "defectdojo-django.defectdojo.svc"
     django:
       ingress:
         enabled: true
-        activateTLS: false
+        activateTLS: true
+        annotations:
+          cert-manager.io/cluster-issuer: letsencrypt-prod
+      ingressClassName: "traefik"
 
     createSecret: true
     createRabbitMqSecret: true
