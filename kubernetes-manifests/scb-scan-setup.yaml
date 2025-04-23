@@ -24,7 +24,7 @@ spec:
     # using a nuclei image with preloaded templates to avoid downloading them every time
     scanner:
       image:
-        repo: docker.io/securecodebox/scanner-nuclei-precooked
+        repository: docker.io/securecodebox/scanner-nuclei-precooked
         tag: v3.4.2-2025-04-22
     nucleiTemplateCache:
       enabled: false
@@ -33,6 +33,7 @@ apiVersion: v1
 kind: Secret
 metadata:
   name: ncrack-lists
+  namespace: securecodebox-scans
 stringData:
   passwords.txt: |-
     root
@@ -55,6 +56,9 @@ spec:
   targetNamespace: securecodebox-scans
   valuesContent: |-
     scanner:
+      image:
+        repository: docker.io/j12934/scanner-ncrack
+        tag: 0.7
       extraVolumes:
         - name: ncrack-lists
           secret:
