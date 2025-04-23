@@ -31,6 +31,6 @@ resource "hcloud_server" "juice_shop" {
 
     runcmd:
       - podman pull bkimminich/juice-shop
-      - podman run --restart -d -p 80:3000 --name juice-shop docker.io/bkimminich/juice-shop:v17.2.0
+      - podman run --restart=always -d -p "80:3000" --name juice-shop docker.io/bkimminich/juice-shop:v17.2.0
   EOT
 }
