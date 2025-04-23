@@ -1,27 +1,3 @@
-resource "hcloud_firewall" "allow-monitoring" {
-  name = "allow-monitoring"
-
-  rule {
-    direction = "in"
-    protocol  = "tcp"
-    port      = "3000"
-    source_ips = [
-      "0.0.0.0/0",
-      "::/0"
-    ]
-  }
-  rule {
-    direction = "in"
-    protocol  = "tcp"
-    port      = "9090"
-    source_ips = [
-      "0.0.0.0/0",
-      "::/0"
-    ]
-  }
-}
-
-
 resource "hcloud_server" "monitoring" {
   name        = "monitoring"
   image       = "ubuntu-24.04"
@@ -32,7 +8,6 @@ resource "hcloud_server" "monitoring" {
 
   firewall_ids = [
     hcloud_firewall.block-incoming-internet.id,
-    hcloud_firewall.allow-monitoring.id,
   ]
 
   public_net {
@@ -42,7 +17,7 @@ resource "hcloud_server" "monitoring" {
 
   network {
     network_id = hcloud_network.private_network.id
-    ip         = "10.0.42.6"  # Changed IP address
+    ip         = "10.0.42.4"
   }
 
   user_data = <<-EOT

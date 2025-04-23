@@ -11,7 +11,7 @@ resource "hcloud_server" "insecure_ssh" {
 
   network {
     network_id = hcloud_network.private_network.id
-    ip         = "10.0.42.5"
+    ip         = "10.0.42.1"
   }
 
   user_data = <<-EOT
