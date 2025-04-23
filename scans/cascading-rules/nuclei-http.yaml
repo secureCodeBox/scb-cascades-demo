@@ -1,0 +1,34 @@
+# SPDX-FileCopyrightText: 2021 iteratec GmbH
+#
+# SPDX-License-Identifier: Apache-2.0
+
+---
+apiVersion: "cascading.securecodebox.io/v1"
+kind: CascadingRule
+metadata:
+  name: "nuclei-http"
+  labels:
+    securecodebox.io/intensive: light
+    securecodebox.io/invasive: non-invasive
+    securecodebox.io/speed: slow # > 1min per scan
+    securecodebox.io/scantype: nuclei
+spec:
+  scanAnnotations:
+    defectdojo.securecodebox.io/product-name: "{{$.hostOrIP}}"
+    defectdojo.securecodebox.io/engagement-name: "nuclei-{{$.hostOrIP}}"
+  matches:
+    anyOf:
+      - category: "Open Port"
+        attributes:
+          service: http*
+          state: open
+      - category: "Open Port"
+        attributes:
+          service: https*
+          state: open
+  scanSpec:
+    scanType: "nuclei"
+    parameters:
+      - "-disable-update-check" # disabling the update check and rolling with the templates from the latest release
+      - "-target" # Target domain name of the finding and start a nuclei scan
+      - "{{$.hostOrIP}}:{{attributes.port}}"

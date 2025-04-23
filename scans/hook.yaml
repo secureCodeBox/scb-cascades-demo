@@ -17,6 +17,7 @@ spec:
   valuesContent: |-
     defectdojo:
       url: http://defectdojo-django.defectdojo.svc.cluster.local
+      syncFindingsBack: false
     hook:
       image:
         # temporary forked image due to ARM issues: https://github.com/secureCodeBox/secureCodeBox/pull/2993

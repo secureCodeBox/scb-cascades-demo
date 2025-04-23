@@ -1,0 +1,35 @@
+
+apiVersion: "cascading.securecodebox.io/v1"
+kind: CascadingRule
+metadata:
+  name: "ncrack-postgresql"
+  labels:
+    securecodebox.io/invasive: invasive
+    securecodebox.io/intensive: high
+    securecodebox.io/type: bruteforce
+spec:
+  scanAnnotations:
+    defectdojo.securecodebox.io/product-name: "{{$.hostOrIP}}"
+    defectdojo.securecodebox.io/engagement-name: "ncrack-{{$.hostOrIP}}"
+  matches:
+    anyOf:
+      - category: "Open Port"
+        attributes:
+          port: 5432
+          state: open
+      - category: "Open Port"
+        attributes:
+          service: "postgresql"
+          state: open
+  scanSpec:
+    scanType: "ncrack"
+    parameters:
+      - -v
+      - -d10
+      - -U
+      - /ncrack/users.txt
+      - -P
+      - /ncrack/passwords.txt
+      - -p
+      - psql:{{attributes.port}}
+      - "{{$.hostOrIP}}"

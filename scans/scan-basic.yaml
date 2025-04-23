@@ -5,6 +5,5 @@ metadata:
 spec:
   scanType: "nmap"
   parameters:
-    # Service Detection enabled
-    - "-sV"
+    - "-sV" # Service Detection enabled
     - "10.0.42.0/24"

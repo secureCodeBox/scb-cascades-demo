@@ -1,0 +1,16 @@
+apiVersion: "execution.securecodebox.io/v1"
+kind: ScheduledScan
+metadata:
+  name: "nmap-internal-network"
+  annotations:
+    defectdojo.securecodebox.io/product-tags: attack-surface/internal
+spec:
+  interval: 24h
+  scanSpec:
+    scanType: "nmap"
+    parameters:
+      - "-sV" # Service Detection enabled
+      - "10.0.42.0/24"
+    cascades:
+      inheritAnnotations: true
+      matchLabels: {} # use cascading rules with any labels => all in the namespace 
