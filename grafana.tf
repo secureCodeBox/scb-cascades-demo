@@ -57,18 +57,7 @@ resource "hcloud_server" "monitoring" {
       - podman
 
     runcmd:
-      - podman pull grafana/grafana
-      - podman pull prom/prometheus
-      - mkdir -p /etc/prometheus
-      - cat <<EOF > /etc/prometheus/prometheus.yml
-        global:
-          scrape_interval: 15s
-        scrape_configs:
-          - job_name: 'prometheus'
-            static_configs:
-              - targets: ['localhost:9090']
-    EOF
-      - podman run -d --name prometheus -p 9090:9090 -v /etc/prometheus:/etc/prometheus prom/prometheus --config.file=/etc/prometheus/prometheus.yml
-      - podman run -d --name grafana -p 3000:3000 grafana/grafana
+      - podman pull docker.io/grafana/grafana:8.1.8
+      - podman run --restart=always -d --name grafana -p 80:3000 docker.io/grafana/grafana:8.1.8
   EOT
 }
