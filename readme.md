@@ -2,7 +2,7 @@
 
 This is a "simple" setup of a couple of insecure VM's in a hetzner private network.
 
-This Setup was initially build for the OWASP Stammtisch Hamburg: https://www.meetup.com/owasp-hamburg-stammtisch/events/307174646/
+This Setup was initially build for the OWASP Hamburg Stammtisch: https://www.meetup.com/owasp-hamburg-stammtisch/events/307174646/
 
 The network consists of 5 VM's
 
