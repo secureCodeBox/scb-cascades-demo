@@ -28,7 +28,7 @@ resource "hcloud_server" "monitoring" {
   server_type = "cax11"
   location    = "fsn1"
 
-  ssh_keys = ["jannik-zuhause", "jannik-unterwegs"]
+  ssh_keys = ["primary"]
 
   firewall_ids = [
     hcloud_firewall.block-incoming-internet.id,

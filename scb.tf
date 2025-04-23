@@ -43,7 +43,7 @@ resource "hcloud_server" "scb" {
   server_type = "cax31"
   location    = "fsn1"
 
-  ssh_keys = ["jannik-zuhause", "jannik-unterwegs"]
+  ssh_keys = ["primary"]
 
   firewall_ids = [
     hcloud_firewall.block-incoming-internet.id,
