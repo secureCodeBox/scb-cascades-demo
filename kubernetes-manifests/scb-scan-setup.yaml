@@ -38,13 +38,16 @@ stringData:
   passwords.txt: |-
     root
     password
+    safe1password
     123456
     admin
     postgres
+
   users.txt: |-
-    root
     admin
+    root
     postgres
+
 ---
 apiVersion: helm.cattle.io/v1
 kind: HelmChart
