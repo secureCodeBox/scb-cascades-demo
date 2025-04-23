@@ -13,7 +13,7 @@ spec:
   chart: defectdojo
   targetNamespace: defectdojo
   valuesContent: |-
-    host: defectdojo.demo.securecodebox.io
+    host: defectdojo.example.com
     alternativeHosts:
       - "localhost"
       - "defectdojo-django.defectdojo.svc.cluster.local"
