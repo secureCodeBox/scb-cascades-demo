@@ -30,8 +30,5 @@ spec:
     scanType: "nuclei"
     parameters:
       - "-disable-update-check" # disabling the update check and rolling with the templates from the latest release
-      # disable js nuclei templates. they are usually "offtopic", e.g. scanning ssh ports even though a http one was targeted.
-      - "-exclude-tags" 
-      - "js"
       - "-target" # Target domain name of the finding and start a nuclei scan
       - "{{$.hostOrIP}}:{{attributes.port}}"
